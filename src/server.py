@@ -44,8 +44,10 @@ from pydantic import validator
 from pymilvus.exceptions import MilvusException
 from pymilvus.exceptions import MilvusUnavailableException
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
+import gradio
 
-from .autohint_prompter import HintElement, hint_elements_to_prompt
+from .autohint_prompt.hint_element import HintElement
+from . import autohint_config
 
 logging.basicConfig(level=os.environ.get('LOGLEVEL', 'INFO').upper())
 logger = logging.getLogger(__name__)
@@ -78,6 +80,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add config gradio app on autohint_config.py port 7860
+
 
 
 EXAMPLE_DIR = "./"
@@ -822,7 +827,7 @@ async def generate_hint(_: Request, hint_prompt: HintOnlyPrompt) -> StreamingRes
     """
     try:
         # Use your utility function to turn hint elements into a specialized prompt
-        hint_context = hint_elements_to_prompt(hint_prompt.hint_elements)
+        hint_context = "" # hint_elements_to_prompt(hint_prompt.hint_elements)
 
         # We then treat that entire hint context as if it's the user's single message
         # so that it flows through the existing chain logic.
@@ -929,3 +934,8 @@ def _stream_error_response(model_name: str, err_msg: str) -> StreamingResponse:
         media_type="text/event-stream",
         status_code=500
     )
+
+
+# At the bottom of server.py (after all route definitions)
+gradio_blocks = autohint_config.create_config_interface()
+app = gradio.mount_gradio_app(app, gradio_blocks, path="/config")

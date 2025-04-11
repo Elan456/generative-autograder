@@ -12,3 +12,5 @@ unstructured[all-docs]==0.16.11
 uvicorn[standard]==0.32.0
 pydantic==2.9.2
 PyYAML==6.0.2
+gradio>=4.0.0
+
